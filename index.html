@@ -78,7 +78,7 @@
       height: 0;
       border-left: 20px solid transparent;
       border-right: 20px solid transparent;
-      border-top: 30px solid red;
+      border-bottom: 30px solid red;
       position: absolute;
       top: -30px;
       left: calc(50% - 20px);
@@ -88,13 +88,17 @@
       position: absolute;
       width: 10px;
       height: 10px;
-      background-color: gold;
-      opacity: 0.8;
-      animation: fall 3s linear forwards;
+      border-radius: 50%;
+      opacity: 0.9;
+      animation: confetti-fall 3s ease-out forwards;
     }
-    @keyframes fall {
-      to {
-        transform: translateY(100vh) rotate(360deg);
+    @keyframes confetti-fall {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh) rotate(720deg);
         opacity: 0;
       }
     }
@@ -160,7 +164,6 @@
       angle += speed;
       speed *= 0.99;
       wheel.style.transform = `rotate(-${angle}deg)`;
-
       if (spinning) {
         spinInterval = requestAnimationFrame(rotateWheel);
       } else {
@@ -179,11 +182,11 @@
       spinSound.currentTime = 0;
       winSound.play();
 
-      const normalizedAngle = angle % 360;
-      const adjusted = (normalizedAngle + segmentAngle / 2) % 360;
-      const selectedIndex = Math.floor(adjusted / segmentAngle);
+      const normalizedAngle = (angle % 360 + 360) % 360; // always positive
+      const indexFromTop = Math.floor((360 - normalizedAngle + segmentAngle / 2) % 360 / segmentAngle);
+      const result = prizes[indexFromTop];
 
-      document.getElementById("result").innerHTML = `${prizes[selectedIndex]}<br><br><strong>Покажи бариста :)</strong>`;
+      document.getElementById("result").innerHTML = `${result}<br><br><strong>Покажи бариста :)</strong>`;
       launchConfetti();
     }
 
@@ -195,6 +198,7 @@
         confetti.style.top = "-10px";
         confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 60%)`;
         confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+        confetti.style.animationDelay = `${Math.random()}s`;
         document.body.appendChild(confetti);
         setTimeout(() => confetti.remove(), 3000);
       }
