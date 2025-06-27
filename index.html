@@ -52,6 +52,7 @@
       overflow: hidden;
       position: relative;
       transition: transform 5s ease-out;
+      transform: rotate(0deg);
     }
     .segment {
       position: absolute;
@@ -73,10 +74,11 @@
       height: 0;
       border-left: 20px solid transparent;
       border-right: 20px solid transparent;
-      border-bottom: 30px solid red;
+      border-top: 30px solid red;
       position: absolute;
-      top: -40px;
+      top: -30px;
       left: calc(50% - 20px);
+      z-index: 10;
     }
   </style>
 </head>
@@ -116,8 +118,10 @@
 
     function spinWheel() {
       const selected = Math.floor(Math.random() * prizes.length);
-      const rotation = 3600 + selected * segmentAngle + segmentAngle / 2;
-      wheel.style.transform = `rotate(-${rotation}deg)`;
+      const offset = segmentAngle / 2; // Центр сегмента
+      const rotation = 360 * 5 + (360 - selected * segmentAngle - offset);
+
+      wheel.style.transform = `rotate(${rotation}deg)`;
 
       setTimeout(() => {
         document.getElementById("result").innerHTML = `${prizes[selected]}<br><br><strong>Покажи бариста :)</strong>`;
