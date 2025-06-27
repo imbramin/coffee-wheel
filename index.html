@@ -1,52 +1,79 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Колесо фортуны</title>
   <style>
     body {
-      font-family: sans-serif;
-      text-align: center;
-      background: #f5f5f5;
       margin: 0;
-      padding: 2rem;
+      padding: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: #fdfdfd;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
     }
-    canvas {
-      margin-top: 20px;
+    h1 {
+      margin-top: 30px;
+      font-size: 28px;
     }
-    #controls {
-      margin-top: 20px;
+    #container {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vw;
     }
-    button {
-      padding: 10px 20px;
-      margin: 0 10px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    #result {
-      margin-top: 20px;
-      font-size: 24px;
-      font-weight: bold;
-      color: green;
+    #wheel {
+      width: 100%;
+      height: auto;
+      display: block;
     }
     #arrow {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
       width: 0;
       height: 0;
       border-left: 20px solid transparent;
       border-right: 20px solid transparent;
       border-bottom: 30px solid red;
-      margin: 0 auto;
-      position: relative;
-      top: 20px;
-      z-index: 10;
+      z-index: 2;
+    }
+    #controls {
+      margin: 20px 0;
+    }
+    button {
+      background: #007bff;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 16px;
+      padding: 10px 20px;
+      margin: 0 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    #result {
+      font-size: 20px;
+      font-weight: bold;
+      color: #28a745;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
   <h1>Колесо фортуны</h1>
-  <div id="arrow"></div>
-  <canvas id="wheel" width="500" height="500"></canvas>
+  <div id="container">
+    <div id="arrow"></div>
+    <canvas id="wheel" width="500" height="500"></canvas>
+  </div>
   <div id="controls">
     <button onclick="startSpin()">Старт</button>
     <button onclick="stopSpin()">Стоп</button>
@@ -56,41 +83,50 @@
   <script>
     const canvas = document.getElementById("wheel");
     const ctx = canvas.getContext("2d");
-    const radius = canvas.width / 2;
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
+    const resultDisplay = document.getElementById("result");
     let prizes = [];
     let angle = 0;
     let spinning = false;
     let speed = 0;
-    let targetAngle = null;
 
     async function loadPrizes() {
       const response = await fetch("prizes.txt");
       const text = await response.text();
       prizes = text.trim().split("\n");
+      resizeCanvas();
       drawWheel();
     }
 
+    function resizeCanvas() {
+      const size = Math.min(window.innerWidth * 0.9, 500);
+      canvas.width = size;
+      canvas.height = size;
+    }
+
     function drawWheel() {
+      const radius = canvas.width / 2;
+      const centerX = radius;
+      const centerY = radius;
       const slice = (2 * Math.PI) / prizes.length;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       for (let i = 0; i < prizes.length; i++) {
         const start = angle + i * slice;
         const end = start + slice;
+
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         ctx.arc(centerX, centerY, radius, start, end);
-        ctx.fillStyle = `hsl(${(i * 360) / prizes.length}, 80%, 60%)`;
+        ctx.fillStyle = `hsl(${(i * 360) / prizes.length}, 70%, 60%)`;
         ctx.fill();
         ctx.stroke();
+
         ctx.save();
         ctx.translate(centerX, centerY);
         ctx.rotate(start + slice / 2);
         ctx.textAlign = "right";
         ctx.fillStyle = "#000";
-        ctx.font = "16px sans-serif";
+        ctx.font = `${Math.max(12, radius * 0.06)}px sans-serif`;
         ctx.fillText(prizes[i], radius - 10, 5);
         ctx.restore();
       }
@@ -101,18 +137,19 @@
         angle += speed;
         angle %= 2 * Math.PI;
         drawWheel();
-        if (!spinning) speed *= 0.97;
+        if (!spinning) speed *= 0.985;
         requestAnimationFrame(animate);
       } else {
         const slice = (2 * Math.PI) / prizes.length;
-        const index = prizes.length - Math.floor(((angle + slice / 2) % (2 * Math.PI)) / slice) - 1;
-        document.getElementById("result").textContent = `Вы выиграли: ${prizes[index]}`;
+        const corrected = (angle + 2 * Math.PI - Math.PI / 2) % (2 * Math.PI);
+        const index = Math.floor(corrected / slice);
+        resultDisplay.textContent = `Вы выиграли: ${prizes[index]}`;
       }
     }
 
     function startSpin() {
       if (!spinning) {
-        speed = Math.random() * 0.3 + 0.3;
+        speed = Math.random() * 0.3 + 0.4;
         spinning = true;
         animate();
       }
@@ -121,6 +158,11 @@
     function stopSpin() {
       spinning = false;
     }
+
+    window.addEventListener("resize", () => {
+      resizeCanvas();
+      drawWheel();
+    });
 
     loadPrizes();
   </script>
