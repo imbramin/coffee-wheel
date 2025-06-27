@@ -29,7 +29,11 @@
       cursor: pointer;
       margin-top: 20px;
     }
-    button:hover {
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    button:hover:not(:disabled) {
       background-color: #8b5e3c;
     }
     #result {
@@ -74,7 +78,7 @@
       height: 0;
       border-left: 20px solid transparent;
       border-right: 20px solid transparent;
-      border-top: 30px solid red;
+      border-bottom: 30px solid red;
       position: absolute;
       top: -30px;
       left: calc(50% - 20px);
@@ -88,7 +92,7 @@
     <div class="arrow"></div>
     <div class="wheel" id="wheel"></div>
   </div>
-  <button onclick="spinWheel()">Крутить!</button>
+  <button id="spinBtn" onclick="spinWheel()">Крутить!</button>
   <div id="result"></div>
 
   <script>
@@ -116,12 +120,17 @@
 
     createSegments();
 
-    function spinWheel() {
-      const selected = Math.floor(Math.random() * prizes.length);
-      const offset = segmentAngle / 2; // Центр сегмента
-      const rotation = 360 * 5 + (360 - selected * segmentAngle - offset);
+    let hasSpun = false;
 
-      wheel.style.transform = `rotate(${rotation}deg)`;
+    function spinWheel() {
+      if (hasSpun) return;
+      hasSpun = true;
+      document.getElementById("spinBtn").disabled = true;
+
+      const selected = Math.floor(Math.random() * prizes.length);
+      const rotation = 360 * 5 + selected * segmentAngle;
+
+      wheel.style.transform = `rotate(-${rotation}deg)`;
 
       setTimeout(() => {
         document.getElementById("result").innerHTML = `${prizes[selected]}<br><br><strong>Покажи бариста :)</strong>`;
