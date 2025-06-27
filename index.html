@@ -34,12 +34,12 @@
       position: absolute;
       top: -20px;
       left: 50%;
-      transform: translateX(-50%);
+      transform: translateX(-50%) rotate(180deg);
       width: 0;
       height: 0;
       border-left: 20px solid transparent;
       border-right: 20px solid transparent;
-      border-bottom: 30px solid red;
+      border-top: 30px solid red;
       z-index: 2;
     }
     #controls {
@@ -141,7 +141,7 @@
         requestAnimationFrame(animate);
       } else {
         const slice = (2 * Math.PI) / prizes.length;
-        const corrected = (angle + 2 * Math.PI - Math.PI / 2) % (2 * Math.PI);
+        const corrected = (2 * Math.PI - (angle % (2 * Math.PI)) + Math.PI / 2) % (2 * Math.PI);
         const index = Math.floor(corrected / slice);
         resultDisplay.textContent = `Вы выиграли: ${prizes[index]}`;
       }
