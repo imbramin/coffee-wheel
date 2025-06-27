@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Рулетка кофейни v1.2</title>
+  <title>Рулетка кофейни v1.3</title>
   <style>
     body {
       font-family: 'Arial', sans-serif;
@@ -183,7 +183,7 @@
       winSound.play();
 
       const normalizedAngle = (angle % 360 + 360) % 360;
-      const indexFromTop = Math.floor(((360 - normalizedAngle + segmentAngle / 2) % 360) / segmentAngle);
+      const indexFromTop = Math.floor(((normalizedAngle + segmentAngle / 2) % 360) / segmentAngle);
       const result = prizes[indexFromTop];
 
       document.getElementById("result").innerHTML = `${result}<br><br><strong>Покажи бариста :)</strong>`;
