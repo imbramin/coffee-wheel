@@ -92,22 +92,25 @@
     <div class="arrow"></div>
     <div class="wheel" id="wheel"></div>
   </div>
-  <button id="spinBtn" onclick="startSpin()">Старт</button>
+  <button id="spinBtn" onclick="startSpin()" disabled>Старт</button>
   <div id="result"></div>
 
   <script>
-    const prizes = [
-      "🎁 -10% на кофе",
-      "🍪 Печенье в подарок",
-      "☕ Кофе 1+1",
-      "🧁 Бесплатный топпинг",
-      "😅 Повезёт в следующий раз"
-    ];
-
+    let prizes = [];
+    let segmentAngle;
     const wheel = document.getElementById("wheel");
-    const segmentAngle = 360 / prizes.length;
+
+    fetch('prizes.txt')
+      .then(response => response.text())
+      .then(text => {
+        prizes = text.trim().split('\n').filter(line => line.trim() !== '');
+        segmentAngle = 360 / prizes.length;
+        createSegments();
+        document.getElementById("spinBtn").disabled = false;
+      });
 
     function createSegments() {
+      wheel.innerHTML = ''; // очистить колесо при повторной загрузке
       prizes.forEach((text, i) => {
         const segment = document.createElement("div");
         segment.className = "segment";
@@ -117,8 +120,6 @@
         wheel.appendChild(segment);
       });
     }
-
-    createSegments();
 
     function startSpin() {
       const spinBtn = document.getElementById("spinBtn");
