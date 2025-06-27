@@ -32,14 +32,15 @@
     }
     #arrow {
       position: absolute;
-      top: -30px;
+      top: -15px;
       left: 50%;
-      transform: translateX(-50%) rotate(0deg);
-      width: 0;
-      height: 0;
-      border-left: 20px solid transparent;
-      border-right: 20px solid transparent;
-      border-top: 30px solid red;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 40px;
+      background: radial-gradient(circle at center, gold 0%, orange 60%, red 100%);
+      border: 3px solid #c00;
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
       z-index: 2;
     }
     #controls {
@@ -141,7 +142,7 @@
         requestAnimationFrame(animate);
       } else {
         const slice = (2 * Math.PI) / prizes.length;
-        const corrected = (2 * Math.PI - (angle % (2 * Math.PI))) % (2 * Math.PI);
+        const corrected = (2 * Math.PI - (angle % (2 * Math.PI)) - Math.PI / 2 + 2 * Math.PI) % (2 * Math.PI);
         const index = Math.floor(corrected / slice);
         resultDisplay.textContent = `Вы выиграли: ${prizes[index]}`;
       }
