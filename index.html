@@ -15,6 +15,7 @@
       height: 100vh;
       margin: 0;
       text-align: center;
+      overflow: hidden;
     }
     h1 {
       color: #5a3e2b;
@@ -77,11 +78,25 @@
       height: 0;
       border-left: 20px solid transparent;
       border-right: 20px solid transparent;
-      border-top: 30px solid red;
+      border-bottom: 30px solid red;
       position: absolute;
       top: -30px;
       left: calc(50% - 20px);
       z-index: 10;
+    }
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: gold;
+      opacity: 0.8;
+      animation: fall 3s linear forwards;
+    }
+    @keyframes fall {
+      to {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+      }
     }
   </style>
 </head>
@@ -95,6 +110,9 @@
   <button id="stopBtn" onclick="stopSpin()" disabled>Стоп</button>
   <div id="result"></div>
 
+  <audio id="spinSound" src="https://www.fesliyanstudios.com/play-mp3/387" preload="auto"></audio>
+  <audio id="winSound" src="https://www.fesliyanstudios.com/play-mp3/6763" preload="auto"></audio>
+
   <script>
     let prizes = [];
     let segmentAngle;
@@ -103,6 +121,8 @@
     let spinning = false;
     let spinInterval;
     const wheel = document.getElementById("wheel");
+    const spinSound = document.getElementById("spinSound");
+    const winSound = document.getElementById("winSound");
 
     fetch('prizes.txt')
       .then(response => response.text())
@@ -128,29 +148,56 @@
     function startSpin() {
       if (spinning) return;
       spinning = true;
-      speed = 10 + Math.random() * 5;
+      speed = 15 + Math.random() * 5;
       document.getElementById("startBtn").disabled = true;
       document.getElementById("stopBtn").disabled = false;
+      spinSound.currentTime = 0;
+      spinSound.play();
       spinInterval = requestAnimationFrame(rotateWheel);
     }
 
     function rotateWheel() {
       angle += speed;
+      speed *= 0.99;
       wheel.style.transform = `rotate(-${angle}deg)`;
-      spinInterval = requestAnimationFrame(rotateWheel);
+
+      if (spinning) {
+        spinInterval = requestAnimationFrame(rotateWheel);
+      } else {
+        finalizeResult();
+      }
     }
 
     function stopSpin() {
       if (!spinning) return;
       spinning = false;
-      cancelAnimationFrame(spinInterval);
       document.getElementById("stopBtn").disabled = true;
+    }
+
+    function finalizeResult() {
+      spinSound.pause();
+      spinSound.currentTime = 0;
+      winSound.play();
 
       const normalizedAngle = angle % 360;
       const adjusted = (360 - normalizedAngle + segmentAngle / 2) % 360;
       const selectedIndex = Math.floor(adjusted / segmentAngle);
 
       document.getElementById("result").innerHTML = `${prizes[selectedIndex]}<br><br><strong>Покажи бариста :)</strong>`;
+      launchConfetti();
+    }
+
+    function launchConfetti() {
+      for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement("div");
+        confetti.className = "confetti";
+        confetti.style.left = Math.random() * 100 + "vw";
+        confetti.style.top = "-10px";
+        confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 60%)`;
+        confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+        document.body.appendChild(confetti);
+        setTimeout(() => confetti.remove(), 3000);
+      }
     }
   </script>
 </body>
