@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Рулетка кофейни</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f9f1e7;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center;
+    }
+    h1 {
+      color: #5a3e2b;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 18px;
+      background-color: #6f4e37;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:hover {
+      background-color: #8b5e3c;
+    }
+    #result {
+      margin-top: 30px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #5a3e2b;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎲 Крути рулетку кофейни!</h1>
+  <p>Нажми на кнопку и узнай свой приз 🎁</p>
+  <button onclick="spinWheel()">Крутить!</button>
+  <div id="result"></div>
+
+  <script>
+    const prizes = [
+      "🎁 -10% на любой кофе",
+      "🍪 Печенье в подарок",
+      "☕ Кофе 1+1 (второй бесплатно)",
+      "🧁 Бесплатный топпинг",
+      "😅 В следующий раз повезёт"
+    ];
+
+    function spinWheel() {
+      const result = prizes[Math.floor(Math.random() * prizes.length)];
+      document.getElementById("result").innerHTML = result + "<br><br><strong>Покажи бариста :)</strong>";
+    }
+  </script>
+</body>
+</html>
