@@ -83,6 +83,7 @@
       top: -30px;
       left: calc(50% - 20px);
       z-index: 10;
+      transform: rotate(180deg);
     }
   </style>
 </head>
@@ -127,13 +128,15 @@
       hasSpun = true;
       document.getElementById("spinBtn").disabled = true;
 
-      const selected = Math.floor(Math.random() * prizes.length);
-      const rotation = 360 * 5 + selected * segmentAngle;
-
+      const randomAngle = Math.floor(Math.random() * 360);
+      const rotation = 360 * 5 + randomAngle;
       wheel.style.transform = `rotate(-${rotation}deg)`;
 
+      const normalizedAngle = (360 - (randomAngle % 360)) % 360;
+      const selectedIndex = Math.floor(normalizedAngle / segmentAngle);
+
       setTimeout(() => {
-        document.getElementById("result").innerHTML = `${prizes[selected]}<br><br><strong>Покажи бариста :)</strong>`;
+        document.getElementById("result").innerHTML = `${prizes[selectedIndex]}<br><br><strong>Покажи бариста :)</strong>`;
       }, 5000);
     }
   </script>
