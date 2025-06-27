@@ -1,208 +1,128 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Рулетка кофейни v1.3</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Колесо фортуны</title>
   <style>
     body {
-      font-family: 'Arial', sans-serif;
-      background-color: #f9f1e7;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
+      font-family: sans-serif;
       text-align: center;
-      overflow: hidden;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 2rem;
     }
-    h1 {
-      color: #5a3e2b;
-    }
-    button {
-      padding: 12px 24px;
-      font-size: 18px;
-      background-color: #6f4e37;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
+    canvas {
       margin-top: 20px;
     }
-    button:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
+    #controls {
+      margin-top: 20px;
     }
-    button:hover:not(:disabled) {
-      background-color: #8b5e3c;
+    button {
+      padding: 10px 20px;
+      margin: 0 10px;
+      font-size: 16px;
+      cursor: pointer;
     }
     #result {
-      margin-top: 30px;
+      margin-top: 20px;
       font-size: 24px;
       font-weight: bold;
-      color: #5a3e2b;
+      color: green;
     }
-    .wheel-container {
-      position: relative;
-      width: 320px;
-      height: 320px;
-      background: url('https://i.imgur.com/bC6dEgo.png') no-repeat center center / contain;
-      margin-top: 30px;
-    }
-    .wheel {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      overflow: hidden;
-      position: relative;
-      transform: rotate(0deg);
-    }
-    .segment {
-      position: absolute;
-      width: 50%;
-      height: 50%;
-      top: 50%;
-      left: 50%;
-      transform-origin: 0% 0%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      font-weight: bold;
-      color: #5a3e2b;
-      text-align: center;
-    }
-    .arrow {
+    #arrow {
       width: 0;
       height: 0;
       border-left: 20px solid transparent;
       border-right: 20px solid transparent;
       border-bottom: 30px solid red;
-      position: absolute;
-      top: -30px;
-      left: calc(50% - 20px);
+      margin: 0 auto;
+      position: relative;
+      top: 20px;
       z-index: 10;
-    }
-    .confetti {
-      position: absolute;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      opacity: 0.9;
-      animation: confetti-fall 3s ease-out forwards;
-    }
-    @keyframes confetti-fall {
-      0% {
-        transform: translateY(0) rotate(0deg);
-        opacity: 1;
-      }
-      100% {
-        transform: translateY(100vh) rotate(720deg);
-        opacity: 0;
-      }
     }
   </style>
 </head>
 <body>
-  <h1>🎲 Крути рулетку кофейни! v1.2</h1>
-  <div class="wheel-container">
-    <div class="arrow"></div>
-    <div class="wheel" id="wheel"></div>
+  <h1>Колесо фортуны</h1>
+  <div id="arrow"></div>
+  <canvas id="wheel" width="500" height="500"></canvas>
+  <div id="controls">
+    <button onclick="startSpin()">Старт</button>
+    <button onclick="stopSpin()">Стоп</button>
   </div>
-  <button id="startBtn" onclick="startSpin()" disabled>Старт</button>
-  <button id="stopBtn" onclick="stopSpin()" disabled>Стоп</button>
   <div id="result"></div>
 
-  <audio id="spinSound" src="https://www.fesliyanstudios.com/play-mp3/387" preload="auto"></audio>
-  <audio id="winSound" src="https://www.fesliyanstudios.com/play-mp3/6763" preload="auto"></audio>
-
   <script>
+    const canvas = document.getElementById("wheel");
+    const ctx = canvas.getContext("2d");
+    const radius = canvas.width / 2;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
     let prizes = [];
-    let segmentAngle;
     let angle = 0;
-    let speed = 0;
     let spinning = false;
-    let spinInterval;
-    const wheel = document.getElementById("wheel");
-    const spinSound = document.getElementById("spinSound");
-    const winSound = document.getElementById("winSound");
+    let speed = 0;
+    let targetAngle = null;
 
-    fetch('prizes.txt')
-      .then(response => response.text())
-      .then(text => {
-        prizes = text.trim().split('\n').filter(line => line.trim() !== '');
-        segmentAngle = 360 / prizes.length;
-        createSegments();
-        document.getElementById("startBtn").disabled = false;
-      });
+    async function loadPrizes() {
+      const response = await fetch("prizes.txt");
+      const text = await response.text();
+      prizes = text.trim().split("\n");
+      drawWheel();
+    }
 
-    function createSegments() {
-      wheel.innerHTML = '';
-      prizes.forEach((text, i) => {
-        const segment = document.createElement("div");
-        segment.className = "segment";
-        segment.style.transform = `rotate(${i * segmentAngle}deg) skewY(-${90 - segmentAngle}deg)`;
-        segment.style.background = i % 2 === 0 ? "#fcebd5" : "#f4d8ba";
-        segment.innerHTML = `<div style='transform: skewY(${90 - segmentAngle}deg) rotate(${segmentAngle / 2}deg); width: 100px;'>${text}</div>`;
-        wheel.appendChild(segment);
-      });
+    function drawWheel() {
+      const slice = (2 * Math.PI) / prizes.length;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < prizes.length; i++) {
+        const start = angle + i * slice;
+        const end = start + slice;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, start, end);
+        ctx.fillStyle = `hsl(${(i * 360) / prizes.length}, 80%, 60%)`;
+        ctx.fill();
+        ctx.stroke();
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(start + slice / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#000";
+        ctx.font = "16px sans-serif";
+        ctx.fillText(prizes[i], radius - 10, 5);
+        ctx.restore();
+      }
+    }
+
+    function animate() {
+      if (spinning || speed > 0.001) {
+        angle += speed;
+        angle %= 2 * Math.PI;
+        drawWheel();
+        if (!spinning) speed *= 0.97;
+        requestAnimationFrame(animate);
+      } else {
+        const slice = (2 * Math.PI) / prizes.length;
+        const index = prizes.length - Math.floor(((angle + slice / 2) % (2 * Math.PI)) / slice) - 1;
+        document.getElementById("result").textContent = `Вы выиграли: ${prizes[index]}`;
+      }
     }
 
     function startSpin() {
-      if (spinning) return;
-      spinning = true;
-      speed = 15 + Math.random() * 5;
-      document.getElementById("startBtn").disabled = true;
-      document.getElementById("stopBtn").disabled = false;
-      spinSound.currentTime = 0;
-      spinSound.play();
-      spinInterval = requestAnimationFrame(rotateWheel);
-    }
-
-    function rotateWheel() {
-      angle += speed;
-      speed *= 0.99;
-      wheel.style.transform = `rotate(-${angle}deg)`;
-      if (spinning) {
-        spinInterval = requestAnimationFrame(rotateWheel);
-      } else {
-        finalizeResult();
+      if (!spinning) {
+        speed = Math.random() * 0.3 + 0.3;
+        spinning = true;
+        animate();
       }
     }
 
     function stopSpin() {
-      if (!spinning) return;
       spinning = false;
-      document.getElementById("stopBtn").disabled = true;
     }
 
-    function finalizeResult() {
-      spinSound.pause();
-      spinSound.currentTime = 0;
-      winSound.play();
-
-      const normalizedAngle = (angle % 360 + 360) % 360;
-      const indexFromTop = Math.floor(((normalizedAngle + segmentAngle / 2) % 360) / segmentAngle);
-      const result = prizes[indexFromTop];
-
-      document.getElementById("result").innerHTML = `${result}<br><br><strong>Покажи бариста :)</strong>`;
-      launchConfetti();
-    }
-
-    function launchConfetti() {
-      for (let i = 0; i < 50; i++) {
-        const confetti = document.createElement("div");
-        confetti.className = "confetti";
-        confetti.style.left = Math.random() * 100 + "vw";
-        confetti.style.top = "-10px";
-        confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 60%)`;
-        confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
-        confetti.style.animationDelay = `${Math.random()}s`;
-        document.body.appendChild(confetti);
-        setTimeout(() => confetti.remove(), 3000);
-      }
-    }
+    loadPrizes();
   </script>
 </body>
 </html>
