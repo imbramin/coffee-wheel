@@ -56,6 +56,7 @@
       overflow: hidden;
       position: relative;
       transform: rotate(0deg);
+      transition: transform 3s ease-out;
     }
     .segment {
       position: absolute;
@@ -82,7 +83,6 @@
       top: -30px;
       left: calc(50% - 20px);
       z-index: 10;
-      transform: none;
     }
   </style>
 </head>
@@ -93,7 +93,6 @@
     <div class="wheel" id="wheel"></div>
   </div>
   <button id="spinBtn" onclick="startSpin()">Старт</button>
-  <button id="stopBtn" onclick="stopSpin()" disabled>Стоп</button>
   <div id="result"></div>
 
   <script>
@@ -107,9 +106,6 @@
 
     const wheel = document.getElementById("wheel");
     const segmentAngle = 360 / prizes.length;
-    let animationFrame;
-    let angle = 0;
-    let spinning = false;
 
     function createSegments() {
       prizes.forEach((text, i) => {
@@ -125,28 +121,19 @@
     createSegments();
 
     function startSpin() {
-      if (spinning) return;
-      spinning = true;
-      document.getElementById("spinBtn").disabled = true;
-      document.getElementById("stopBtn").disabled = false;
-      rotateWheel();
-    }
+      const spinBtn = document.getElementById("spinBtn");
+      spinBtn.disabled = true;
 
-    function rotateWheel() {
-      angle += 5;
-      wheel.style.transform = `rotate(-${angle}deg)`;
-      animationFrame = requestAnimationFrame(rotateWheel);
-    }
+      const selectedIndex = Math.floor(Math.random() * prizes.length);
+      const randomOffset = Math.random() * segmentAngle;
+      const finalAngle = selectedIndex * segmentAngle + randomOffset;
+      const totalRotation = 360 * 5 + finalAngle;
 
-    function stopSpin() {
-      cancelAnimationFrame(animationFrame);
-      spinning = false;
-      document.getElementById("stopBtn").disabled = true;
+      wheel.style.transform = `rotate(-${totalRotation}deg)`;
 
-      const normalizedAngle = (360 - (angle % 360)) % 360;
-      const selectedIndex = Math.floor(((normalizedAngle + segmentAngle / 2) % 360) / segmentAngle);
-
-      document.getElementById("result").innerHTML = `${prizes[selectedIndex]}<br><br><strong>Покажи бариста :)</strong>`;
+      setTimeout(() => {
+        document.getElementById("result").innerHTML = `${prizes[selectedIndex]}<br><br><strong>Покажи бариста :)</strong>`;
+      }, 3000);
     }
   </script>
 </body>
