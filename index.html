@@ -78,7 +78,7 @@
       height: 0;
       border-left: 20px solid transparent;
       border-right: 20px solid transparent;
-      border-bottom: 30px solid red;
+      border-top: 30px solid red;
       position: absolute;
       top: -30px;
       left: calc(50% - 20px);
@@ -180,7 +180,7 @@
       winSound.play();
 
       const normalizedAngle = angle % 360;
-      const adjusted = (360 - normalizedAngle + segmentAngle / 2) % 360;
+      const adjusted = (normalizedAngle + segmentAngle / 2) % 360;
       const selectedIndex = Math.floor(adjusted / segmentAngle);
 
       document.getElementById("result").innerHTML = `${prizes[selectedIndex]}<br><br><strong>Покажи бариста :)</strong>`;
