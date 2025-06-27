@@ -55,7 +55,6 @@
       border: 8px solid #6f4e37;
       overflow: hidden;
       position: relative;
-      transition: transform 5s ease-out;
       transform: rotate(0deg);
     }
     .segment {
@@ -78,12 +77,12 @@
       height: 0;
       border-left: 20px solid transparent;
       border-right: 20px solid transparent;
-      border-bottom: 30px solid red;
+      border-top: 30px solid red;
       position: absolute;
       top: -30px;
       left: calc(50% - 20px);
       z-index: 10;
-      transform: rotate(180deg);
+      transform: none;
     }
   </style>
 </head>
@@ -93,7 +92,8 @@
     <div class="arrow"></div>
     <div class="wheel" id="wheel"></div>
   </div>
-  <button id="spinBtn" onclick="spinWheel()">Крутить!</button>
+  <button id="spinBtn" onclick="startSpin()">Старт</button>
+  <button id="stopBtn" onclick="stopSpin()" disabled>Стоп</button>
   <div id="result"></div>
 
   <script>
@@ -107,6 +107,9 @@
 
     const wheel = document.getElementById("wheel");
     const segmentAngle = 360 / prizes.length;
+    let animationFrame;
+    let angle = 0;
+    let spinning = false;
 
     function createSegments() {
       prizes.forEach((text, i) => {
@@ -121,23 +124,29 @@
 
     createSegments();
 
-    let hasSpun = false;
-
-    function spinWheel() {
-      if (hasSpun) return;
-      hasSpun = true;
+    function startSpin() {
+      if (spinning) return;
+      spinning = true;
       document.getElementById("spinBtn").disabled = true;
+      document.getElementById("stopBtn").disabled = false;
+      rotateWheel();
+    }
 
-      const randomAngle = Math.floor(Math.random() * 360);
-      const rotation = 360 * 5 + randomAngle;
-      wheel.style.transform = `rotate(-${rotation}deg)`;
+    function rotateWheel() {
+      angle += 5;
+      wheel.style.transform = `rotate(-${angle}deg)`;
+      animationFrame = requestAnimationFrame(rotateWheel);
+    }
 
-      const normalizedAngle = (360 - (randomAngle % 360)) % 360;
-      const selectedIndex = Math.floor(normalizedAngle / segmentAngle);
+    function stopSpin() {
+      cancelAnimationFrame(animationFrame);
+      spinning = false;
+      document.getElementById("stopBtn").disabled = true;
 
-      setTimeout(() => {
-        document.getElementById("result").innerHTML = `${prizes[selectedIndex]}<br><br><strong>Покажи бариста :)</strong>`;
-      }, 5000);
+      const normalizedAngle = (360 - (angle % 360)) % 360;
+      const selectedIndex = Math.floor(((normalizedAngle + segmentAngle / 2) % 360) / segmentAngle);
+
+      document.getElementById("result").innerHTML = `${prizes[selectedIndex]}<br><br><strong>Покажи бариста :)</strong>`;
     }
   </script>
 </body>
