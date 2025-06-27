@@ -56,7 +56,6 @@
       overflow: hidden;
       position: relative;
       transform: rotate(0deg);
-      transition: transform 3s ease-out;
     }
     .segment {
       position: absolute;
@@ -92,12 +91,17 @@
     <div class="arrow"></div>
     <div class="wheel" id="wheel"></div>
   </div>
-  <button id="spinBtn" onclick="startSpin()" disabled>Старт</button>
+  <button id="startBtn" onclick="startSpin()" disabled>Старт</button>
+  <button id="stopBtn" onclick="stopSpin()" disabled>Стоп</button>
   <div id="result"></div>
 
   <script>
     let prizes = [];
     let segmentAngle;
+    let angle = 0;
+    let speed = 0;
+    let spinning = false;
+    let spinInterval;
     const wheel = document.getElementById("wheel");
 
     fetch('prizes.txt')
@@ -106,11 +110,11 @@
         prizes = text.trim().split('\n').filter(line => line.trim() !== '');
         segmentAngle = 360 / prizes.length;
         createSegments();
-        document.getElementById("spinBtn").disabled = false;
+        document.getElementById("startBtn").disabled = false;
       });
 
     function createSegments() {
-      wheel.innerHTML = ''; // очистить колесо при повторной загрузке
+      wheel.innerHTML = '';
       prizes.forEach((text, i) => {
         const segment = document.createElement("div");
         segment.className = "segment";
@@ -122,19 +126,31 @@
     }
 
     function startSpin() {
-      const spinBtn = document.getElementById("spinBtn");
-      spinBtn.disabled = true;
+      if (spinning) return;
+      spinning = true;
+      speed = 10 + Math.random() * 5;
+      document.getElementById("startBtn").disabled = true;
+      document.getElementById("stopBtn").disabled = false;
+      spinInterval = requestAnimationFrame(rotateWheel);
+    }
 
-      const selectedIndex = Math.floor(Math.random() * prizes.length);
-      const randomOffset = Math.random() * segmentAngle;
-      const finalAngle = selectedIndex * segmentAngle + randomOffset;
-      const totalRotation = 360 * 5 + finalAngle;
+    function rotateWheel() {
+      angle += speed;
+      wheel.style.transform = `rotate(-${angle}deg)`;
+      spinInterval = requestAnimationFrame(rotateWheel);
+    }
 
-      wheel.style.transform = `rotate(-${totalRotation}deg)`;
+    function stopSpin() {
+      if (!spinning) return;
+      spinning = false;
+      cancelAnimationFrame(spinInterval);
+      document.getElementById("stopBtn").disabled = true;
 
-      setTimeout(() => {
-        document.getElementById("result").innerHTML = `${prizes[selectedIndex]}<br><br><strong>Покажи бариста :)</strong>`;
-      }, 3000);
+      const normalizedAngle = angle % 360;
+      const adjusted = (360 - normalizedAngle + segmentAngle / 2) % 360;
+      const selectedIndex = Math.floor(adjusted / segmentAngle);
+
+      document.getElementById("result").innerHTML = `${prizes[selectedIndex]}<br><br><strong>Покажи бариста :)</strong>`;
     }
   </script>
 </body>
